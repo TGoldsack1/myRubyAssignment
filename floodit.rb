@@ -4,7 +4,7 @@ require 'colorize'
 
 #Splash page (requires enter to continue)
 def splash_page(width, height)
-  splash = ConsoleSplash.new(25,40)
+  splash = ConsoleSplash.new(20,40)
   splash.write_header("Flood-it", "Tomas Goldsack", "0.1")
   splash.write_center(-4, "<Press enter to continue>")
   splash.write_horizontal_pattern("*")
@@ -37,60 +37,127 @@ def home_page(width, height)
 end
 
 def get_board(width, height)
-  board = Array.new(height){ Array.new(width)}
   #define all symbols in an array of colors
   String.disable_colorization = false # enable colorization
-  red = "  ".colorize( :background => :red)
-  blue = "  ".colorize( :background => :blue)
-  green = "  ".colorize( :background => :green)
-  yellow = "  ".colorize( :background => :yellow)
-  cyan = "  ".colorize( :background => :cyan)
-  magenta = "  ".colorize( :background => :magenta)
-  colors = [red, blue, green, yellow, cyan, magenta]
+  colors = [:red, :blue, :green, :yellow, :cyan, :magenta] 
+  board = Array.new(height){ Array.new(width)}
   #Give each element in the array a random color from colors array
-  # and print the board.
-  board.each do |sub_array|
-    sub_array.each do |item|
-        item = colors.sample
-        print item
+  #and print the board.
+  $board = []
+  board.each do |y|
+   $row = [] 
+    y.each do |x|
+      x = "  ".colorize( :background => (colors.sample))
+      $row.push(x)
+      print x
     end
-    print "\n"
+    $board.push($row)
+    print"\n"
   end
-  turns = 0
-  play_game
+  $turns = 0
+  $selected = Array.new(height){Array.new(width, 0)}
+  $selected[0][0] = 1   
+  play_game(width, height)
 end
   
-def play_game
+def play_game(width, height)
   #beneath board messages
-  percentage = (width*height)
-  puts "Turns: #{turns}"
+  $selectedCount = 1
+  $board[0][0] = "  ".colorize( :background => $oldColor)
+  percentage = (width*height)/ $selectedCount #or just the calc the percentage of the selected array that is 1
+  puts "Turns: #{$turns}"
   puts "Current completion: #{percentage}%"
   print "Choose a color: "
   choice = gets.chomp.downcase
     if choice == "q" 
       home_page
     elsif choice == "r"
-      newColor = red
-      turns +=1
+      $newColor = :red
+      $turns +=1
     elsif choice == "b"
-      newColor = blue
-      turns +=1
+      $newColor = :blue
+      $turns +=1
     elsif choice == "g"
-      newColor = green
-      turns +=1
+      $newColor = :green
+      $turns +=1
     elsif choice == "y"
-      newColor = yellow
-      turns +=1
+      $newColor = :yellow
+      $turns +=1
     elsif choice == "c"
-      newColor = yellow
-      turns +=1
+      $newColor = :cyan
+      $turns +=1
     elsif choice == "m"
-      newColor = magenta
-      turns +=1
+      $newColor = :magenta
+      $turns +=1
     else 
-      play_game
+      play_game(width, height)
     end
+  numMarked = 1
+  a = 0
+  b = 0
+  while numMarked > 0 do
+    $selected.each do |y|
+      y.each do |x|
+        numMarked = 0
+        if $selected[b][a] == 1
+          if a < width 
+            if $board[b][a+1] == "  ".colorize( :background => $newColor)
+              $selected[b][a+1] = 1 
+              numMarked += 1
+            end
+          end
+          if b < height  
+            if $board[b+1][a] == "  ".colorize( :background => $newColor)
+              $selected[b+1][a] = 1
+              numMarked += 1
+            end
+          end
+          if a > 0  
+            if $board[b][a-1] == "  ".colorize( :background => $newColor)
+              $selected[b][a-1] = 1
+              numMarked += 1
+            end
+          end
+          if b > 0 
+            if $board[b-1][a] == "  ".colorize( :background => $newColor)
+              $selected[b-1][a] = 1
+              numMarked += 1
+            end
+          end
+        end
+        a += 1
+      end
+      b += 1
+      a = 0
+    end
+  end
+  a = 0
+  b = 0 
+  $selected.each do |y|
+    y.each do |x|
+      if $selected[b][a] == 1
+        $board[b][a] = "  ".colorize( :background => $newColor)
+      end
+      a += 1
+    end
+    b += 1
+    a = 0
+  end
+  $selected.each do |y|
+    y.each do |x| 
+      print x
+    end
+    print "\n"
+  end        
+            
   
+  $board.each do |y|
+    y.each do |x| 
+      print x
+    end
+    print "\n"
+  end
+  play_game(width, height)
 end
   
 def change_size(width, height)
@@ -98,7 +165,7 @@ def change_size(width, height)
   width = gets.to_i
   print "Height(currently: #{height}  )? "
   height = gets.to_i
-  get_board(width, height)
+  home_page(width, height)
 end
 
 splash_page(14, 9)
