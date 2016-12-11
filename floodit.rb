@@ -23,6 +23,11 @@ def home_page(width, height)
   puts "s = Start game"
   puts "c = Change size"
   puts "q = Quit"
+  if $highScore == 0 
+    puts "No games played yet."
+  else
+    puts "Best game: #{$highScore} turns"
+  end
   print "Please enter your choice: "
   choice = gets.chomp.downcase
     if choice == "s"
@@ -56,17 +61,23 @@ def get_board(width, height)
   end
   $turns = 0
   $selected = Array.new(height){Array.new(width, 0)}
-  $selected[0][0] = 1   
+  $selected[0][0] = 1
+  $selectedCount = 1
   play_game(width, height)
 end
   
 def play_game(width, height)
   #beneath board messages
-  $selectedCount = 1
+  cellNum = width*height
   $board[0][0] = "  ".colorize( :background => $oldColor)
-  percentage = (width*height)/ $selectedCount #or just the calc the percentage of the selected array that is 1
+  percentage = (($selectedCount/(cellNum))*100) 
   puts "Turns: #{$turns}"
   puts "Current completion: #{percentage}%"
+  if $selectedCount == cellNum
+    puts "You have won after #{$turns} turns!"
+    $highScore = $turns
+    home_page(width, height)
+  end
   print "Choose a color: "
   choice = gets.chomp.downcase
     if choice == "q" 
@@ -106,7 +117,7 @@ def play_game(width, height)
               numMarked += 1
             end
           end
-          if b < height  
+          if b < (height-1)  
             if $board[b+1][a] == "  ".colorize( :background => $newColor)
               $selected[b+1][a] = 1
               numMarked += 1
@@ -133,30 +144,25 @@ def play_game(width, height)
   end
   a = 0
   b = 0 
+  $selectedCount = 0
   $selected.each do |y|
     y.each do |x|
       if $selected[b][a] == 1
         $board[b][a] = "  ".colorize( :background => $newColor)
+        $selectedCount += 1
       end
       a += 1
     end
     b += 1
     a = 0
   end
-  $selected.each do |y|
-    y.each do |x| 
-      print x
-    end
-    print "\n"
-  end        
-            
-  
   $board.each do |y|
     y.each do |x| 
       print x
     end
     print "\n"
   end
+   
   play_game(width, height)
 end
   
@@ -168,6 +174,7 @@ def change_size(width, height)
   home_page(width, height)
 end
 
+$highScore = 0
 splash_page(14, 9)
 
 
